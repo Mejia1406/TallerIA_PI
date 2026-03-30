@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
 
 from .models import Movie
+from .recommendations import recommend_movie_for_prompt
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -123,3 +125,34 @@ def generate_bar_chart(data, xlabel, ylabel):
     buffer.close()
     graphic = base64.b64encode(image_png).decode('utf-8')
     return graphic
+
+
+@require_http_methods(["GET", "POST"])
+def recommend(request):
+    prompt = ""
+    best_movie = None
+    similarity = None
+    error = None
+
+    if request.method == "POST":
+        prompt = (request.POST.get("prompt") or "").strip()
+        if not prompt:
+            error = "Please enter a prompt."
+        else:
+            try:
+                best_movie, similarity = recommend_movie_for_prompt(prompt)
+                if best_movie is None:
+                    error = "No movies with valid embeddings were found."
+            except Exception as exc:
+                error = str(exc)
+
+    return render(
+        request,
+        "recommendation.html",
+        {
+            "prompt": prompt,
+            "best_movie": best_movie,
+            "similarity": similarity,
+            "error": error,
+        },
+    )

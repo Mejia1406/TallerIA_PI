@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+  <h2 class="mt-4">Movie Recommendation</h2>
+
+  <form method="post" class="mt-3">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="prompt" class="form-label">Prompt / description:</label>
+      <textarea class="form-control" id="prompt" name="prompt" rows="3" placeholder="e.g., película de la segunda guerra mundial">{{ prompt }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Recommend</button>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-danger mt-3" role="alert">{{ error }}</div>
+  {% endif %}
+
+  {% if best_movie %}
+    <div class="row row-cols-1 row-cols-md-3 g-4 mt-1">
+      <div class="col">
+        <div class="card">
+          {% if best_movie.image %}
+            <img src="{{ best_movie.image.url }}" class="card-img-top" alt="...">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title fw-bold">{{ best_movie.title }}</h5>
+            <p class="card-text">{{ best_movie.description }}</p>
+            <p class="card-text">{{ best_movie.genre }}</p>
+            <p class="card-text">{{ best_movie.year }}</p>
+            {% if similarity is not None %}
+              <p class="card-text"><small class="text-muted">Cosine similarity: {{ similarity|floatformat:4 }}</small></p>
+            {% endif %}
+            {% if best_movie.url %}
+              <a href="{{ best_movie.url }}" class="btn btn-primary">Movie Link</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock content %}
